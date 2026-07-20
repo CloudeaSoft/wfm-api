@@ -10,6 +10,8 @@ export default antfu(
       '**/node_modules/**',
       '**/*.tsbuildinfo',
       '**/coverage/**',
+      '**/scripts/pack-smoke/**',
+      '**/temp/**',
     ],
     typescript: {
       tsconfigPath: 'tsconfig.json',

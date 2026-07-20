@@ -39,3 +39,37 @@ jobs:
 
       - name: Test
         run: pnpm test
+
+  pack-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - name: Pack
+        run: pnpm pack --pack-destination ./scripts/pack-smoke
+
+      - name: Install packed package
+        working-directory: scripts/pack-smoke
+        run: |
+          tarball=$(ls wfm-api-*.tgz)
+          pnpm add "./${tarball}" --ignore-workspace
+
+      - name: Smoke import packed package
+        working-directory: scripts/pack-smoke
+        run: node index.js

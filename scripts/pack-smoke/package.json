@@ -1,0 +1,8 @@
+{
+  "name": "wfm-api-pack-smoke",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "wfm-api": "file:./wfm-api-0.0.0.tgz"
+  }
+}
