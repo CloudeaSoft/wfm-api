@@ -116,17 +116,22 @@ describe('createWfmApiClient', () => {
     await client.users.getMe({ accessToken: 'override' })
   })
 
-  it('unwraps v1 payload for statistics', async () => {
+  it('unwraps v1 payload for statistics by slug', async () => {
+    const calls: string[] = []
     const client = createWfmApiClient({
-      fetcher: jsonFetcher(() => ({
-        payload: {
-          statistics_closed: { '48hours': [], '90days': [] },
-          statistics_live: { '48hours': [], '90days': [] },
-        },
-      })),
+      fetcher: jsonFetcher(({ url }) => {
+        calls.push(url)
+        return {
+          payload: {
+            statistics_closed: { '48hours': [], '90days': [] },
+            statistics_live: { '48hours': [], '90days': [] },
+          },
+        }
+      }),
     })
 
-    const stats = await client.items.getStatistics('forma')
+    const stats = await client.items.getStatistics('sicarus_prime_receiver')
+    expect(calls[0]).toContain('/v1/items/sicarus_prime_receiver/statistics')
     expect(stats.statistics_closed['48hours']).toEqual([])
   })
 })

@@ -1,5 +1,5 @@
 export interface Ducatnator {
-  datetime: Date
+  datetime: string
   position_change_month: number
   position_change_week: number
   position_change_day: number
