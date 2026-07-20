@@ -1,17 +1,17 @@
 {
   "name": "wfm-api-client",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "packageManager": "pnpm@11.15.1",
   "description": "TypeScript API wrapper for Warframe Market (community, unofficial)",
   "license": "MIT",
-  "homepage": "https://github.com/CloudeaSoft/wfm-api",
+  "homepage": "https://github.com/CloudeaSoft/wfm-api-client",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CloudeaSoft/wfm-api.git"
+    "url": "git+https://github.com/CloudeaSoft/wfm-api-client.git"
   },
   "bugs": {
-    "url": "https://github.com/CloudeaSoft/wfm-api/issues"
+    "url": "https://github.com/CloudeaSoft/wfm-api-client/issues"
   },
   "keywords": [
     "warframe",
