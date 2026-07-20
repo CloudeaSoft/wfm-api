@@ -1,6 +1,7 @@
 import type { RequestContext, WfmApiClientOptions } from './types'
 import {
   createAchievementEndpoints,
+  createAuthEndpoints,
   createDashboardEndpoints,
   createItemEndpoints,
   createLichEndpoints,
@@ -14,6 +15,7 @@ import {
 import { createDefaultFetcher, createRequest } from './transport'
 
 export function createWfmApiClient(options: WfmApiClientOptions = {}): {
+  auth: ReturnType<typeof createAuthEndpoints>
   items: ReturnType<typeof createItemEndpoints>
   rivens: ReturnType<typeof createRivenEndpoints>
   orders: ReturnType<typeof createOrderEndpoints>
@@ -40,6 +42,14 @@ export function createWfmApiClient(options: WfmApiClientOptions = {}): {
   })
 
   return {
+    auth: createAuthEndpoints(request, {
+      onTokens(tokens) {
+        state.accessToken = tokens.accessToken
+      },
+      onSignOut() {
+        state.accessToken = undefined
+      },
+    }),
     items: createItemEndpoints(request),
     rivens: createRivenEndpoints(request),
     orders: createOrderEndpoints(request),

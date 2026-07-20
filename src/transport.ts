@@ -70,8 +70,10 @@ export function createRequest(options: {
       headers.Platform = context.platform
     if (context.crossplay != null)
       headers.Crossplay = String(context.crossplay)
-    if (context.accessToken)
+    if (context.accessToken && !init.omitAuthorization)
       headers.Authorization = `Bearer ${context.accessToken}`
+    if (init.appCheckToken)
+      headers['X-Firebase-AppCheck'] = init.appCheckToken
 
     let body: BodyInit | null | undefined
     if (init.formData) {
@@ -100,7 +102,13 @@ export function createRequest(options: {
       })
     }
 
-    if (result.status === 204) {
+    if (result.status === 204 || envelope === 'empty') {
+      if (!result.ok) {
+        throw new WfmApiError(`HTTP ${result.status}`, {
+          status: result.status,
+          url: finalUrl,
+        })
+      }
       return undefined as T
     }
 

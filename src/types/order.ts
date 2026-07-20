@@ -37,7 +37,6 @@ export interface Order {
   itemId?: string
   groupId?: string
   user?: UserShort
-  vosfor?: number
 }
 
 /** @deprecated Prefer Order */

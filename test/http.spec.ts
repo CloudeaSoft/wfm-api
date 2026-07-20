@@ -5,6 +5,7 @@ import {
   ordersItemPath,
   ordersUserPath,
   userPath,
+  WFM_API_AUTH,
   WFM_API_V1,
   WFM_API_V2,
   WFM_STATIC_ASSETS,
@@ -14,6 +15,7 @@ describe('api path helpers', () => {
   it('exposes base URLs', () => {
     expect(WFM_API_V1).toBe('https://api.warframe.market/v1/')
     expect(WFM_API_V2).toBe('https://api.warframe.market/v2/')
+    expect(WFM_API_AUTH).toBe('https://api.warframe.market/auth/')
     expect(WFM_STATIC_ASSETS).toBe('https://warframe.market/static/assets/')
   })
 

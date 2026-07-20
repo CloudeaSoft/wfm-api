@@ -2,6 +2,7 @@ import type { ItemRef, UserRef, WfmRequest } from '../types'
 
 export const WFM_API_V1 = 'https://api.warframe.market/v1/'
 export const WFM_API_V2 = 'https://api.warframe.market/v2/'
+export const WFM_API_AUTH = 'https://api.warframe.market/auth/'
 export const WFM_STATIC_ASSETS = 'https://warframe.market/static/assets/'
 
 export function itemPath(ref: ItemRef, suffix = ''): string {

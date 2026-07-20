@@ -134,4 +134,138 @@ describe('createWfmApiClient', () => {
     expect(calls[0]).toContain('/v1/items/sicarus_prime_receiver/statistics')
     expect(stats.statistics_closed['48hours']).toEqual([])
   })
+
+  it('refreshes session without authorization and updates access token', async () => {
+    const auths: Array<string | undefined> = []
+    const client = createWfmApiClient({
+      accessToken: 'stale',
+      fetcher: async (input) => {
+        auths.push(input.headers?.Authorization)
+        if (input.url.includes('/auth/refresh')) {
+          return {
+            status: 200,
+            ok: true,
+            json: async () => ({
+              apiVersion: '0.25.0',
+              data: {
+                accessToken: 'fresh',
+                refreshToken: 'refresh-2',
+                tokenType: 'Bearer',
+                expiresIn: 3600,
+              },
+              error: null,
+            }),
+            text: async () => '',
+          }
+        }
+        return {
+          status: 200,
+          ok: true,
+          json: async () => ({
+            apiVersion: '0.25.0',
+            data: {
+              id: 'me',
+              role: 'user',
+              tier: 'none',
+              subscription: false,
+              ingameName: 'x',
+              slug: 'x',
+              about: '',
+              aboutRaw: '',
+              reputation: 0,
+              masteryRank: 0,
+              credits: 0,
+              lastSeen: '',
+              platform: 'pc',
+              crossplay: false,
+              locale: 'en',
+              theme: 'dark',
+              syncLocale: false,
+              syncTheme: false,
+              verification: false,
+              checkCode: '',
+              unreadNotifications: 0,
+              linkedAccounts: {},
+            },
+            error: null,
+          }),
+          text: async () => '',
+        }
+      },
+    })
+
+    const tokens = await client.auth.refresh({
+      grantType: 'refresh_token',
+      clientId: 'wfm-0000',
+      deviceId: 'device-1',
+      refreshToken: 'refresh-1',
+    })
+    expect(tokens.accessToken).toBe('fresh')
+    expect(auths[0]).toBeUndefined()
+
+    await client.users.getMe()
+    expect(auths[1]).toBe('Bearer fresh')
+  })
+
+  it('sends app check token on refresh when provided', async () => {
+    const client = createWfmApiClient({
+      fetcher: jsonFetcher(({ headers }) => {
+        expect(headers?.['X-Firebase-AppCheck']).toBe('app-check')
+        return {
+          apiVersion: '0.25.0',
+          data: {
+            accessToken: 'a',
+            refreshToken: 'r',
+            tokenType: 'Bearer',
+            expiresIn: 1,
+          },
+          error: null,
+        }
+      }),
+    })
+
+    await client.auth.refresh(
+      {
+        grantType: 'refresh_token',
+        clientId: 'wfm-0000',
+        deviceId: 'device-1',
+        refreshToken: 'refresh-1',
+      },
+      { appCheckToken: 'app-check' },
+    )
+  })
+
+  it('signs out with bearer token and clears stored access token', async () => {
+    let seenAuth: string | undefined
+    const client = createWfmApiClient({
+      accessToken: 'token-1',
+      fetcher: async (input) => {
+        seenAuth = input.headers?.Authorization
+        if (input.url.includes('/auth/signout')) {
+          return {
+            status: 200,
+            ok: true,
+            json: async () => {
+              throw new Error('empty body')
+            },
+            text: async () => '',
+          }
+        }
+        return {
+          status: 200,
+          ok: true,
+          json: async () => ({
+            apiVersion: '0.25.0',
+            data: [],
+            error: null,
+          }),
+          text: async () => '',
+        }
+      },
+    })
+
+    await client.auth.signOut()
+    expect(seenAuth).toBe('Bearer token-1')
+    await expect(client.orders.listMine()).rejects.toThrow(/access token/i)
+  })
 })

@@ -18,10 +18,10 @@ export interface VersionCollections {
 }
 
 export interface Versions {
+  id: string
   apps: VersionApps
   collections: VersionCollections
   updatedAt: string
-  id?: string
 }
 
 export interface LocationI18N {

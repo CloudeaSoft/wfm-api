@@ -65,7 +65,11 @@ export interface WfmRequestInit {
   body?: unknown
   formData?: FormData
   auth?: boolean
-  envelope?: 'v1' | 'v2' | 'none'
+  /** Skip Authorization even when an access token is available. */
+  omitAuthorization?: boolean
+  /** Optional Firebase App Check token (first-party auth flows). */
+  appCheckToken?: string
+  envelope?: 'v1' | 'v2' | 'none' | 'empty'
   context?: CallOptions
 }
 

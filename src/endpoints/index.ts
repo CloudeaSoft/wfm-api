@@ -1,4 +1,5 @@
 export * from './achievements'
+export * from './auth'
 export * from './dashboard'
 export * from './items'
 export * from './liches'

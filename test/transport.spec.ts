@@ -175,6 +175,51 @@ describe('createRequest', () => {
     await expect(request('https://example.test')).resolves.toBeUndefined()
   })
 
+  it('returns undefined for empty envelope without parsing body', async () => {
+    const request = createRequest({
+      fetcher: mockFetcher(() => ({
+        status: 200,
+        ok: true,
+        json: async () => {
+          throw new Error('empty body')
+        },
+      })),
+      getDefaults: () => ({ accessToken: 't' }),
+    })
+
+    await expect(request('https://example.test/auth/signout', {
+      method: 'POST',
+      auth: true,
+      envelope: 'empty',
+    })).resolves.toBeUndefined()
+  })
+
+  it('omits authorization when omitAuthorization is set', async () => {
+    const fetcher = vi.fn(mockFetcher((input) => {
+      expect(input.headers?.Authorization).toBeUndefined()
+      expect(input.headers?.['X-Firebase-AppCheck']).toBe('check')
+      return {
+        payload: {
+          apiVersion: '0.25.0',
+          data: { accessToken: 'a', refreshToken: 'r', tokenType: 'Bearer', expiresIn: 1 },
+          error: null,
+        },
+      }
+    }))
+
+    const request = createRequest({
+      fetcher,
+      getDefaults: () => ({ accessToken: 'existing' }),
+    })
+
+    await request('https://api.warframe.market/auth/refresh', {
+      method: 'POST',
+      body: { grantType: 'refresh_token' },
+      omitAuthorization: true,
+      appCheckToken: 'check',
+    })
+  })
+
   it('unwraps v1 payload envelope', async () => {
     const request = createRequest({
       fetcher: mockFetcher(() => ({
