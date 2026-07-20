@@ -2,19 +2,44 @@ import type { WFMLang } from './common'
 
 export type RivenAttributeUnit = 'percent' | 'multiply' | 'seconds' | string
 
+export interface RivenItemI18N {
+  name: string
+  wikiLink?: string
+  icon: string
+  thumb: string
+  subIcon?: string
+}
+
+export interface RivenItem {
+  id: string
+  slug: string
+  gameRef: string
+  group?: string
+  rivenType?: string
+  disposition: number
+  reqMasteryRank: number
+  i18n?: Partial<Record<WFMLang, RivenItemI18N | null>>
+}
+
+export interface RivenAttributeI18N {
+  name?: string
+  icon?: string
+  thumb?: string
+}
+
 export interface RivenAttribute {
   id: string
   slug: string
   gameRef: string
-  group: string
+  group?: string
   prefix: string
   suffix: string
-  exclusiveTo: Array<'shotgun' | 'rifle' | 'pistol' | 'kitgun' | string>
-  positiveIsNegative: boolean
-  positiveOnly: boolean
-  negativeOnly: boolean
-  unit: RivenAttributeUnit
-  i18n: Record<WFMLang, { name: string, icon: string, thumb: string }>
+  exclusiveTo?: string[]
+  positiveIsNegative?: boolean
+  unit?: RivenAttributeUnit
+  positiveOnly?: boolean
+  negativeOnly?: boolean
+  i18n?: Partial<Record<WFMLang, RivenAttributeI18N>>
 }
 
 interface Riven {

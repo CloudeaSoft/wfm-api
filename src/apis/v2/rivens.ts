@@ -1,23 +1,24 @@
-import type { RivenAttribute, RivenItem, WFMResponse } from '../../types'
-import type { WfmGet } from '../http'
+import type {
+  CallOptions,
+  RivenAttribute,
+  RivenItem,
+  WfmRequest,
+} from '../../types'
 import { WFM_API_V2 } from '../http'
 
-export function createV2RivenApis(get: WfmGet): {
-  getItems: () => Promise<RivenItem[] | undefined>
-  getAttributes: () => Promise<RivenAttribute[] | undefined>
+export function createV2RivenApis(request: WfmRequest): {
+  listWeapons: (options?: CallOptions) => Promise<RivenItem[]>
+  getWeapon: (slug: string, options?: CallOptions) => Promise<RivenItem>
+  listAttributes: (options?: CallOptions) => Promise<RivenAttribute[]>
 } {
   return {
-    getItems: async () => {
-      const response = await get<WFMResponse<RivenItem[]>>(
-        `${WFM_API_V2}riven/weapons`,
-      )
-      return response?.data
-    },
-    getAttributes: async () => {
-      const response = await get<WFMResponse<RivenAttribute[]>>(
-        `${WFM_API_V2}riven/attributes`,
-      )
-      return response?.data
-    },
+    listWeapons: async options =>
+      request(`${WFM_API_V2}riven/weapons`, { context: options }),
+    getWeapon: async (slug, options) =>
+      request(`${WFM_API_V2}riven/weapon/${encodeURIComponent(slug)}`, {
+        context: options,
+      }),
+    listAttributes: async options =>
+      request(`${WFM_API_V2}riven/attributes`, { context: options }),
   }
 }

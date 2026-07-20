@@ -1,16 +1,19 @@
-import type { Auction, RivenOrder, WFMResponseV1 } from '../../types'
-import type { WfmGet } from '../http'
+import type { CallOptions, RivenOrder, WfmRequest } from '../../types'
 import { WFM_API_V1 } from '../http'
 
-export function createV1RivenApis(get: WfmGet): {
-  getOrders: (itemId: string) => Promise<RivenOrder[] | undefined>
+export function createV1RivenApis(request: WfmRequest): {
+  getOrders: (weaponUrlName: string, options?: CallOptions) => Promise<RivenOrder[]>
 } {
   return {
-    getOrders: async (itemId: string) => {
-      const response = await get<WFMResponseV1<Auction<RivenOrder>>>(
-        `${WFM_API_V1}auctions/search?type=riven&sort_by=price_asc&weapon_url_name=${itemId}`,
+    getOrders: async (weaponUrlName, options) => {
+      const auctions = await request<{ auctions: RivenOrder[] }>(
+        `${WFM_API_V1}auctions/search?type=riven&sort_by=price_asc&weapon_url_name=${encodeURIComponent(weaponUrlName)}`,
+        {
+          envelope: 'v1',
+          context: options,
+        },
       )
-      return response?.payload?.auctions
+      return auctions.auctions
     },
   }
 }

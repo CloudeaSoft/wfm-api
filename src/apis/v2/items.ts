@@ -1,23 +1,23 @@
-import type { ItemShort, OrderWithUser, WFMResponse } from '../../types'
-import type { WfmGet } from '../http'
-import { WFM_API_V2 } from '../http'
+import type {
+  CallOptions,
+  Item,
+  ItemRef,
+  ItemSet,
+  WfmRequest,
+} from '../../types'
+import { itemPath, WFM_API_V2 } from '../http'
 
-export function createV2ItemApis(get: WfmGet): {
-  getList: () => Promise<ItemShort[] | undefined>
-  getOrders: (itemId: string) => Promise<OrderWithUser[] | undefined>
+export function createV2ItemApis(request: WfmRequest): {
+  list: (options?: CallOptions) => Promise<Item[]>
+  get: (ref: ItemRef, options?: CallOptions) => Promise<Item>
+  getSet: (ref: ItemRef, options?: CallOptions) => Promise<ItemSet>
 } {
   return {
-    getList: async () => {
-      const response = await get<WFMResponse<ItemShort[]>>(
-        `${WFM_API_V2}items`,
-      )
-      return response?.data
-    },
-    getOrders: async (itemId: string) => {
-      const response = await get<WFMResponse<OrderWithUser[]>>(
-        `${WFM_API_V2}orders/item/${itemId}`,
-      )
-      return response?.data
-    },
+    list: async options =>
+      request(`${WFM_API_V2}items`, { context: options }),
+    get: async (ref, options) =>
+      request(itemPath(ref), { context: options }),
+    getSet: async (ref, options) =>
+      request(itemPath(ref, '/set'), { context: options }),
   }
 }

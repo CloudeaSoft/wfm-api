@@ -1,29 +1,58 @@
-import type { WfmApiClientOptions } from './types'
-import { createItemEndpoints, createRivenEndpoints, createToolEndpoints } from './endpoints'
-import { defaultFetcher } from './transport'
+import type { RequestContext, WfmApiClientOptions } from './types'
+import {
+  createAchievementEndpoints,
+  createDashboardEndpoints,
+  createItemEndpoints,
+  createLichEndpoints,
+  createManifestEndpoints,
+  createOrderEndpoints,
+  createRivenEndpoints,
+  createSisterEndpoints,
+  createToolEndpoints,
+  createUserEndpoints,
+} from './endpoints'
+import { createDefaultFetcher, createRequest } from './transport'
 
-export function createWfmApiClient(
-  options: WfmApiClientOptions = {},
-): {
+export function createWfmApiClient(options: WfmApiClientOptions = {}): {
   items: ReturnType<typeof createItemEndpoints>
   rivens: ReturnType<typeof createRivenEndpoints>
+  orders: ReturnType<typeof createOrderEndpoints>
+  users: ReturnType<typeof createUserEndpoints>
+  liches: ReturnType<typeof createLichEndpoints>
+  sisters: ReturnType<typeof createSisterEndpoints>
+  manifests: ReturnType<typeof createManifestEndpoints>
+  achievements: ReturnType<typeof createAchievementEndpoints>
+  dashboard: ReturnType<typeof createDashboardEndpoints>
   tools: ReturnType<typeof createToolEndpoints>
+  setAccessToken: (token: string | undefined) => void
 } {
-  const fetcher = options.fetcher ?? defaultFetcher
-
-  async function get<T>(url: string): Promise<T | undefined> {
-    try {
-      return await fetcher<T>(url)
-    }
-    catch {
-      return undefined
-    }
+  const state: RequestContext = {
+    accessToken: options.accessToken,
+    language: options.language,
+    platform: options.platform,
+    crossplay: options.crossplay,
   }
 
+  const fetcher = options.fetcher ?? createDefaultFetcher(options.timeoutMs)
+  const request = createRequest({
+    fetcher,
+    getDefaults: () => state,
+  })
+
   return {
-    items: createItemEndpoints(get),
-    rivens: createRivenEndpoints(get),
-    tools: createToolEndpoints(get),
+    items: createItemEndpoints(request),
+    rivens: createRivenEndpoints(request),
+    orders: createOrderEndpoints(request),
+    users: createUserEndpoints(request),
+    liches: createLichEndpoints(request),
+    sisters: createSisterEndpoints(request),
+    manifests: createManifestEndpoints(request),
+    achievements: createAchievementEndpoints(request),
+    dashboard: createDashboardEndpoints(request),
+    tools: createToolEndpoints(request),
+    setAccessToken(token: string | undefined) {
+      state.accessToken = token
+    },
   }
 }
 

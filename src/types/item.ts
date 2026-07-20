@@ -1,44 +1,42 @@
 import type { WFMLang } from './common'
 
-interface ItemI18N {
+export interface ItemI18N {
   name: string
-  description: string
-  wikiLink: string
+  description?: string
+  wikiLink?: string
   icon: string
   thumb: string
-  subIcon: string
+  subIcon?: string
 }
 
-export interface ItemShort {
+export interface Item {
   id: string
   slug: string
   gameRef: string
   tags: string[]
-  i18n: Partial<Record<WFMLang, ItemI18N>>
-  maxRank: number
-  maxCharges: number
-  vaulted: boolean
-  ducats: number
-  amberStars: number
-  cyanStars: number
-  baseEndo: number
-  endoMultiplier: number
-  subtypes: string[]
+  setRoot?: boolean
+  setParts?: string[]
+  quantityInSet?: number
+  rarity?: string
+  bulkTradable?: boolean
+  subtypes?: string[]
+  maxRank?: number
+  maxCharges?: number
+  maxAmberStars?: number
+  maxCyanStars?: number
+  baseEndo?: number
+  endoMultiplier?: number
+  ducats?: number
+  vosfor?: number
+  reqMasteryRank?: number
+  vaulted?: boolean
+  tradingTax?: number
+  i18n?: Partial<Record<WFMLang, ItemI18N>>
+  tradable?: boolean
 }
 
-export interface RivenItem {
-  id: string
-  slug: string
-  gameRef: string
-  group?: string
-  rivenType?: string
-  disposition: number
-  reqMasteryRank: number
-  i18n?: Record<
-    string,
-    { name?: string, wikiLink?: string, icon: string, thumb: string } | null
-  >
-}
+/** @deprecated Prefer Item — kept for compatibility with older call sites */
+export type ItemShort = Item
 
 export interface ClosedStatisticsEntry {
   datetime: string
@@ -80,4 +78,9 @@ export interface StatisticsCollection {
     '48hours': LiveStatisticsEntry[]
     '90days': LiveStatisticsEntry[]
   }
+}
+
+export interface ItemSet {
+  id: string
+  items: Item[]
 }
