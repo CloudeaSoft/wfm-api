@@ -39,6 +39,7 @@ export function createWfmApiClient(options: WfmApiClientOptions = {}): {
   const request = createRequest({
     fetcher,
     getDefaults: () => state,
+    plugins: options.plugins,
   })
 
   return {

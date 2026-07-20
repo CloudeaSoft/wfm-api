@@ -37,9 +37,24 @@ export interface RequestContext {
 
 export type CallOptions = RequestContext
 
+export interface WfmRequestContext {
+  url: string
+  init: WfmRequestInit
+  /** Effective request context (client defaults + per-call overrides). */
+  context: RequestContext
+}
+
+export type WfmRequestNext = (ctx: WfmRequestContext) => Promise<unknown>
+
+export interface WfmPlugin {
+  wrap: (next: WfmRequestNext) => WfmRequestNext
+}
+
 export interface WfmApiClientOptions extends RequestContext {
   fetcher?: WfmFetcher
   timeoutMs?: number
+  /** Onion-style request plugins; array order is outer → inner. */
+  plugins?: WfmPlugin[]
 }
 
 export interface WfmFetchInput {

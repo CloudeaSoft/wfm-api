@@ -5,173 +5,16 @@ import type {
   WfmFetcher,
   WfmFetchInput,
   WfmFetchResult,
+  WfmPlugin,
   WfmRequest,
   WfmRequestInit,
+  WfmRequestNext,
   WFMResponse,
   WFMResponseV1,
 } from './types'
 import { WfmApiError } from './errors'
 
 const DEFAULT_TIMEOUT_MS = 10_000
-
-export function createDefaultFetcher(timeoutMs = DEFAULT_TIMEOUT_MS): WfmFetcher {
-  return async (input: WfmFetchInput): Promise<WfmFetchResult> => {
-    const response = await fetch(input.url, {
-      method: input.method,
-      headers: input.headers,
-      body: input.body,
-      signal: input.signal ?? AbortSignal.timeout(timeoutMs),
-    })
-
-    return {
-      status: response.status,
-      ok: response.ok,
-      json: async () => response.json() as Promise<unknown>,
-      text: async () => response.text(),
-    }
-  }
-}
-
-export function mergeContext(
-  defaults: RequestContext,
-  override?: CallOptions,
-): RequestContext {
-  return {
-    accessToken: override?.accessToken ?? defaults.accessToken,
-    language: override?.language ?? defaults.language,
-    platform: override?.platform ?? defaults.platform,
-    crossplay: override?.crossplay ?? defaults.crossplay,
-  }
-}
-
-export function createRequest(options: {
-  fetcher: WfmFetcher
-  getDefaults: () => RequestContext
-}): WfmRequest {
-  const { fetcher, getDefaults } = options
-
-  return async <T>(url: string, init: WfmRequestInit = {}): Promise<T> => {
-    const context = mergeContext(getDefaults(), init.context)
-    const envelope = init.envelope ?? 'v2'
-
-    if (init.auth && !context.accessToken) {
-      throw new WfmApiError('Missing access token for authenticated request', {
-        url,
-      })
-    }
-
-    const headers: Record<string, string> = {
-      Accept: 'application/json',
-    }
-
-    if (context.language)
-      headers.Language = context.language
-    if (context.platform)
-      headers.Platform = context.platform
-    if (context.crossplay != null)
-      headers.Crossplay = String(context.crossplay)
-    if (context.accessToken && !init.omitAuthorization)
-      headers.Authorization = `Bearer ${context.accessToken}`
-    if (init.appCheckToken)
-      headers['X-Firebase-AppCheck'] = init.appCheckToken
-
-    let body: BodyInit | null | undefined
-    if (init.formData) {
-      body = init.formData
-    }
-    else if (init.body !== undefined) {
-      headers['Content-Type'] = 'application/json'
-      body = JSON.stringify(init.body)
-    }
-
-    const finalUrl = appendQuery(url, init.query)
-
-    let result: WfmFetchResult
-    try {
-      result = await fetcher({
-        url: finalUrl,
-        method: init.method ?? 'GET',
-        headers,
-        body,
-      })
-    }
-    catch (cause) {
-      throw new WfmApiError('Network request failed', {
-        url: finalUrl,
-        cause,
-      })
-    }
-
-    if (result.status === 204 || envelope === 'empty') {
-      if (!result.ok) {
-        throw new WfmApiError(`HTTP ${result.status}`, {
-          status: result.status,
-          url: finalUrl,
-        })
-      }
-      return undefined as T
-    }
-
-    let payload: unknown
-    try {
-      payload = await result.json()
-    }
-    catch (cause) {
-      if (!result.ok) {
-        throw new WfmApiError(`HTTP ${result.status}`, {
-          status: result.status,
-          url: finalUrl,
-          cause,
-        })
-      }
-      throw new WfmApiError('Failed to parse JSON response', {
-        status: result.status,
-        url: finalUrl,
-        cause,
-      })
-    }
-
-    if (envelope === 'none') {
-      if (!result.ok) {
-        throw new WfmApiError(`HTTP ${result.status}`, {
-          status: result.status,
-          url: finalUrl,
-        })
-      }
-      return payload as T
-    }
-
-    if (envelope === 'v1') {
-      if (!result.ok) {
-        throw new WfmApiError(`HTTP ${result.status}`, {
-          status: result.status,
-          url: finalUrl,
-        })
-      }
-      const v1 = payload as WFMResponseV1<T>
-      return v1.payload
-    }
-
-    const v2 = payload as WFMResponse<T>
-    if (v2.error) {
-      throw new WfmApiError(v2.error.request?.[0] ?? `HTTP ${result.status}`, {
-        status: result.status,
-        url: finalUrl,
-        error: v2.error,
-      })
-    }
-
-    if (!result.ok) {
-      throw new WfmApiError(`HTTP ${result.status}`, {
-        status: result.status,
-        url: finalUrl,
-        error: v2.error ?? undefined,
-      })
-    }
-
-    return v2.data
-  }
-}
 
 function appendQuery(
   url: string,
@@ -196,6 +39,202 @@ function appendQuery(
   if (!qs)
     return url
   return url.includes('?') ? `${url}&${qs}` : `${url}?${qs}`
+}
+
+export function mergeContext(
+  defaults: RequestContext,
+  override?: CallOptions,
+): RequestContext {
+  return {
+    accessToken: override?.accessToken ?? defaults.accessToken,
+    language: override?.language ?? defaults.language,
+    platform: override?.platform ?? defaults.platform,
+    crossplay: override?.crossplay ?? defaults.crossplay,
+  }
+}
+
+function buildHeaders(
+  context: RequestContext,
+  init: WfmRequestInit,
+): Record<string, string> {
+  const headers: Record<string, string> = {
+    Accept: 'application/json',
+  }
+
+  if (context.language)
+    headers.Language = context.language
+  if (context.platform)
+    headers.Platform = context.platform
+  if (context.crossplay != null)
+    headers.Crossplay = String(context.crossplay)
+  if (context.accessToken && !init.omitAuthorization)
+    headers.Authorization = `Bearer ${context.accessToken}`
+  if (init.appCheckToken)
+    headers['X-Firebase-AppCheck'] = init.appCheckToken
+
+  return headers
+}
+
+function buildBody(init: WfmRequestInit): {
+  headers?: Record<string, string>
+  body?: BodyInit | null
+} {
+  if (init.formData)
+    return { body: init.formData }
+  if (init.body !== undefined) {
+    return {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(init.body),
+    }
+  }
+  return {}
+}
+
+async function parseEnvelope(
+  result: WfmFetchResult,
+  envelope: NonNullable<WfmRequestInit['envelope']>,
+  url: string,
+): Promise<unknown> {
+  if (result.status === 204 || envelope === 'empty') {
+    if (!result.ok) {
+      throw new WfmApiError(`HTTP ${result.status}`, {
+        status: result.status,
+        url,
+      })
+    }
+    return undefined
+  }
+
+  let payload: unknown
+  try {
+    payload = await result.json()
+  }
+  catch (cause) {
+    if (!result.ok) {
+      throw new WfmApiError(`HTTP ${result.status}`, {
+        status: result.status,
+        url,
+        cause,
+      })
+    }
+    throw new WfmApiError('Failed to parse JSON response', {
+      status: result.status,
+      url,
+      cause,
+    })
+  }
+
+  if (envelope === 'none') {
+    if (!result.ok) {
+      throw new WfmApiError(`HTTP ${result.status}`, {
+        status: result.status,
+        url,
+      })
+    }
+    return payload
+  }
+
+  if (envelope === 'v1') {
+    if (!result.ok) {
+      throw new WfmApiError(`HTTP ${result.status}`, {
+        status: result.status,
+        url,
+      })
+    }
+    return (payload as WFMResponseV1<unknown>).payload
+  }
+
+  const v2 = payload as WFMResponse<unknown>
+  if (v2.error) {
+    throw new WfmApiError(v2.error.request?.[0] ?? `HTTP ${result.status}`, {
+      status: result.status,
+      url,
+      error: v2.error,
+    })
+  }
+
+  if (!result.ok) {
+    throw new WfmApiError(`HTTP ${result.status}`, {
+      status: result.status,
+      url,
+      error: v2.error ?? undefined,
+    })
+  }
+
+  return v2.data
+}
+
+export function createDefaultFetcher(timeoutMs = DEFAULT_TIMEOUT_MS): WfmFetcher {
+  return async (input: WfmFetchInput): Promise<WfmFetchResult> => {
+    const response = await fetch(input.url, {
+      method: input.method,
+      headers: input.headers,
+      body: input.body,
+      signal: input.signal ?? AbortSignal.timeout(timeoutMs),
+    })
+
+    return {
+      status: response.status,
+      ok: response.ok,
+      json: async () => response.json() as Promise<unknown>,
+      text: async () => response.text(),
+    }
+  }
+}
+
+export function createRequest(options: {
+  fetcher: WfmFetcher
+  getDefaults: () => RequestContext
+  plugins?: WfmPlugin[]
+}): WfmRequest {
+  const { fetcher, getDefaults, plugins = [] } = options
+
+  const baseRequest: WfmRequestNext = async (ctx) => {
+    const { url: finalUrl, init, context } = ctx
+    const envelope = init.envelope ?? 'v2'
+
+    if (init.auth && !context.accessToken) {
+      throw new WfmApiError('Missing access token for authenticated request', {
+        url: finalUrl,
+      })
+    }
+
+    const headers = buildHeaders(context, init)
+    const prepared = buildBody(init)
+    Object.assign(headers, prepared.headers)
+
+    let result: WfmFetchResult
+    try {
+      result = await fetcher({
+        url: finalUrl,
+        method: init.method ?? 'GET',
+        headers,
+        body: prepared.body,
+      })
+    }
+    catch (cause) {
+      throw new WfmApiError('Network request failed', {
+        url: finalUrl,
+        cause,
+      })
+    }
+
+    return parseEnvelope(result, envelope, finalUrl)
+  }
+
+  const composed = plugins.reduceRight(
+    (next, plugin) => plugin.wrap(next),
+    baseRequest,
+  )
+
+  return async <T>(url: string, init: WfmRequestInit = {}): Promise<T> => {
+    const finalUrl = appendQuery(url, init.query)
+    return composed({
+      url: finalUrl,
+      init,
+      context: mergeContext(getDefaults(), init.context),
+    }) as Promise<T>
+  }
 }
 
 export type { WfmApiClientOptions }
