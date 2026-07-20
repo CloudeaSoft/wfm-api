@@ -1,13 +1,12 @@
 {
   "compilerOptions": {
-    "incremental": true,
-    "composite": true,
     "target": "ES2022",
     "rootDir": "src",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "strict": true,
     "declaration": true,
+    "noEmit": true,
     "outDir": "lib",
     "esModuleInterop": true,
     "skipLibCheck": true

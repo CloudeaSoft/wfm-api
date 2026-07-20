@@ -1,6 +1,6 @@
 {
   "name": "wfm-api",
-  "type": "commonjs",
+  "type": "module",
   "version": "0.0.0",
   "packageManager": "pnpm@11.15.1",
   "description": "TypeScript API wrapper for Warframe Market (community, unofficial)",
@@ -21,12 +21,18 @@
   ],
   "exports": {
     ".": {
-      "types": "./lib/index.d.ts",
-      "require": "./lib/index.js",
-      "default": "./lib/index.js"
+      "import": {
+        "types": "./lib/index.d.ts",
+        "default": "./lib/index.js"
+      },
+      "require": {
+        "types": "./lib/index.d.cts",
+        "default": "./lib/index.cjs"
+      }
     }
   },
-  "main": "./lib/index.js",
+  "main": "./lib/index.cjs",
+  "module": "./lib/index.js",
   "types": "./lib/index.d.ts",
   "files": [
     "lib"
@@ -36,8 +42,8 @@
     "pnpm": ">=11"
   },
   "scripts": {
-    "build": "tsc --build",
-    "clean": "tsc --build --clean",
+    "build": "tsup",
+    "clean": "node --input-type=module -e \"import { rmSync } from 'node:fs'; rmSync('lib', { recursive: true, force: true })\"",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "pnpm run build",
     "test": "vitest run",
@@ -51,6 +57,7 @@
     "@vitest/coverage-v8": "4.1.10",
     "eslint": "^10.7.0",
     "jiti": "^2.7.0",
+    "tsup": "^8.5.1",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.62.0",
     "vitest": "4.1.10"
