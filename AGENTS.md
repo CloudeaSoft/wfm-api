@@ -1,0 +1,13 @@
+# Agent instructions
+
+## Verify after edits
+
+After modifying source, tests, or build-related config, before claiming done:
+
+1. `pnpm build`
+2. `pnpm lint`
+3. `pnpm test`
+
+Fix failures and re-run until all three pass.
+Do not require `typecheck`, `clean`, `lint:fix`, or `test:coverage` as completion gates.
+Skip only for docs/rules-only changes that cannot affect build, lint, or tests.
