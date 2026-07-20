@@ -1,42 +1,19 @@
-import type {
-  Auction,
-  RivenAttribute,
-  RivenItem,
-  RivenOrder,
-  WFMResponse,
-  WFMResponseV1,
-} from '../types'
-
-const wfmApiV1Base = 'https://api.warframe.market/v1/'
-const wfmApiV2Base = 'https://api.warframe.market/v2/'
-
-type WfmGet = <T>(url: string) => Promise<T | undefined>
+import type { WfmGet } from '../apis'
+import { createV1RivenApis, createV2RivenApis } from '../apis'
 
 export function createRivenEndpoints(
   get: WfmGet,
 ): {
-  getItems: () => Promise<RivenItem[] | undefined>
-  getOrders: (itemId: string) => Promise<RivenOrder[] | undefined>
-  getAttributes: () => Promise<RivenAttribute[] | undefined>
+  getItems: ReturnType<typeof createV2RivenApis>['getItems']
+  getOrders: ReturnType<typeof createV1RivenApis>['getOrders']
+  getAttributes: ReturnType<typeof createV2RivenApis>['getAttributes']
 } {
+  const v1 = createV1RivenApis(get)
+  const v2 = createV2RivenApis(get)
+
   return {
-    getItems: async () => {
-      const response = await get<WFMResponse<RivenItem[]>>(
-        `${wfmApiV2Base}riven/weapons`,
-      )
-      return response?.data
-    },
-    getOrders: async (itemId: string) => {
-      const response = await get<WFMResponseV1<Auction<RivenOrder>>>(
-        `${wfmApiV1Base}auctions/search?type=riven&sort_by=price_asc&weapon_url_name=${itemId}`,
-      )
-      return response?.payload?.auctions
-    },
-    getAttributes: async () => {
-      const response = await get<WFMResponse<RivenAttribute[]>>(
-        `${wfmApiV2Base}riven/attributes`,
-      )
-      return response?.data
-    },
+    getItems: v2.getItems,
+    getOrders: v1.getOrders,
+    getAttributes: v2.getAttributes,
   }
 }

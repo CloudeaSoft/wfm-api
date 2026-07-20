@@ -1,41 +1,19 @@
-import type {
-  ItemShort,
-  OrderWithUser,
-  StatisticsCollection,
-  WFMResponse,
-  WFMResponseV1,
-} from '../types'
-
-const wfmApiV1Base = 'https://api.warframe.market/v1/'
-const wfmApiV2Base = 'https://api.warframe.market/v2/'
-
-type WfmGet = <T>(url: string) => Promise<T | undefined>
+import type { WfmGet } from '../apis'
+import { createV1ItemApis, createV2ItemApis } from '../apis'
 
 export function createItemEndpoints(
   get: WfmGet,
 ): {
-  getList: () => Promise<ItemShort[] | undefined>
-  getStatistics: (itemId: string) => Promise<StatisticsCollection | undefined>
-  getOrders: (itemId: string) => Promise<OrderWithUser[] | undefined>
+  getList: ReturnType<typeof createV2ItemApis>['getList']
+  getStatistics: ReturnType<typeof createV1ItemApis>['getStatistics']
+  getOrders: ReturnType<typeof createV2ItemApis>['getOrders']
 } {
+  const v1 = createV1ItemApis(get)
+  const v2 = createV2ItemApis(get)
+
   return {
-    getList: async () => {
-      const response = await get<WFMResponse<ItemShort[]>>(
-        `${wfmApiV2Base}items`,
-      )
-      return response?.data
-    },
-    getStatistics: async (itemId: string) => {
-      const response = await get<WFMResponseV1<StatisticsCollection>>(
-        `${wfmApiV1Base}items/${itemId}/statistics`,
-      )
-      return response?.payload
-    },
-    getOrders: async (itemId: string) => {
-      const response = await get<WFMResponse<OrderWithUser[]>>(
-        `${wfmApiV2Base}orders/item/${itemId}`,
-      )
-      return response?.data
-    },
+    getList: v2.getList,
+    getStatistics: v1.getStatistics,
+    getOrders: v2.getOrders,
   }
 }

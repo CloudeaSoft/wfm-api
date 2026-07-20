@@ -1,39 +1,8 @@
-import type {
-  Ducatnator,
-  WFMResponseV1,
-} from '../types'
-
-const wfmApiV1Base = 'https://api.warframe.market/v1/'
-
-type WfmGet = <T>(url: string) => Promise<T | undefined>
+import type { WfmGet } from '../apis'
+import { createV1ToolApis } from '../apis'
 
 export function createToolEndpoints(
   get: WfmGet,
-): {
-  getDucatnator: () => Promise<
-    | {
-      day: Ducatnator[]
-      hour: Ducatnator[]
-    }
-    | undefined
-  >
-} {
-  return {
-    getDucatnator: async () => {
-      const response = await get<WFMResponseV1<{
-        previous_day: Ducatnator[]
-        previous_hour: Ducatnator[]
-      }>>(
-        `${wfmApiV1Base}tools/ducats`,
-      )
-
-      if (!response?.payload)
-        return undefined
-
-      return {
-        day: response.payload.previous_day,
-        hour: response.payload.previous_hour,
-      }
-    },
-  }
+): ReturnType<typeof createV1ToolApis> {
+  return createV1ToolApis(get)
 }
