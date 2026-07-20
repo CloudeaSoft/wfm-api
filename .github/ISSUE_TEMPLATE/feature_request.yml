@@ -1,5 +1,5 @@
 name: Feature request
-description: Suggest an idea or enhancement for wfm-api
+description: Suggest an idea or enhancement for wfm-api-client
 title: '[Feature]: '
 labels:
   - enhancement
@@ -14,7 +14,7 @@ body:
     attributes:
       label: Problem / motivation
       description: What problem does this solve? Why is it useful?
-      placeholder: As a user of wfm-api, I want ... so that ...
+      placeholder: As a user of wfm-api-client, I want ... so that ...
     validations:
       required: true
 

@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a problem with wfm-api
+description: Report a problem with wfm-api-client
 title: '[Bug]: '
 labels:
   - bug
@@ -52,7 +52,7 @@ body:
       label: Environment
       description: Versions that matter for reproducing the bug.
       value: |
-        - wfm-api:
+        - wfm-api-client:
         - Node.js:
         - Package manager (pnpm/npm/yarn):
         - OS:

@@ -67,7 +67,7 @@ jobs:
       - name: Install packed package
         working-directory: scripts/pack-smoke
         run: |
-          tarball=$(ls wfm-api-*.tgz)
+          tarball=$(ls wfm-api-client-*.tgz)
           pnpm add "./${tarball}" --ignore-workspace
 
       - name: Smoke import packed package

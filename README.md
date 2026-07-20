@@ -1,4 +1,4 @@
-# wfm-api
+# wfm-api-client
 
 Community TypeScript/JavaScript wrapper for the [Warframe Market](https://warframe.market) HTTP API.
 
@@ -7,7 +7,7 @@ Community TypeScript/JavaScript wrapper for the [Warframe Market](https://warfra
 ## Install
 
 ```bash
-pnpm add wfm-api
+pnpm add wfm-api-client
 # or
-npm install wfm-api
+npm install wfm-api-client
 ```

@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "wfm-api": "file:./wfm-api-0.0.0.tgz"
+    "wfm-api-client": "file:wfm-api-client-0.0.1.tgz"
   }
 }

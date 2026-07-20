@@ -1,4 +1,4 @@
-import { createWfmApiClient } from 'wfm-api'
+import { createWfmApiClient } from 'wfm-api-client'
 
 const client = createWfmApiClient({
   language: 'zh-hans',
