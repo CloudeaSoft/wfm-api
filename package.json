@@ -36,8 +36,10 @@
     "pnpm": ">=11"
   },
   "scripts": {
-    "build": "tsc --build --force",
-    "dtsc": "tsc --build --force",
+    "build": "tsc --build",
+    "clean": "tsc --build --clean",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm run build",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint",
